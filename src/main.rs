@@ -1,18 +1,11 @@
 use clap::{AppSettings, CommandFactory, FromArgMatches, Parser, Subcommand};
 
-mod completion;
-mod deploy;
-mod gen;
-mod inspect;
-mod invoke;
+mod commands;
 mod jsonrpc;
 mod network;
-mod read;
-mod serve;
 mod snapshot;
 mod strval;
 mod utils;
-mod version;
 
 #[derive(Parser, Debug)]
 #[clap(
@@ -30,40 +23,40 @@ struct Root {
 #[derive(Subcommand, Debug)]
 enum Cmd {
     /// Invoke a contract function in a WASM file
-    Invoke(invoke::Cmd),
+    Invoke(commands::invoke::Cmd),
     /// Inspect a WASM file listing contract functions, meta, etc
-    Inspect(inspect::Cmd),
+    Inspect(commands::inspect::Cmd),
     /// Print the current value of a contract-data ledger entry
-    Read(read::Cmd),
+    Read(commands::read::Cmd),
     /// Run a local webserver for web app development and testing
-    Serve(serve::Cmd),
+    Serve(commands::serve::Cmd),
     /// Deploy a WASM file as a contract
-    Deploy(deploy::Cmd),
+    Deploy(commands::deploy::Cmd),
     /// Generate code client bindings for a contract
-    Gen(gen::Cmd),
+    Gen(commands::gen::Cmd),
 
     /// Print version information
-    Version(version::Cmd),
+    Version(commands::version::Cmd),
     /// Print shell completion code for the specified shell.
-    #[clap(long_about = completion::LONG_ABOUT)]
-    Completion(completion::Cmd),
+    #[clap(long_about = commands::completion::LONG_ABOUT)]
+    Completion(commands::completion::Cmd),
 }
 
 #[derive(thiserror::Error, Debug)]
 enum CmdError {
     // TODO: stop using Debug for displaying errors
     #[error(transparent)]
-    Inspect(#[from] inspect::Error),
+    Inspect(#[from] commands::inspect::Error),
     #[error(transparent)]
-    Invoke(#[from] invoke::Error),
+    Invoke(#[from] commands::invoke::Error),
     #[error(transparent)]
-    Read(#[from] read::Error),
+    Read(#[from] commands::read::Error),
     #[error(transparent)]
-    Serve(#[from] serve::Error),
+    Serve(#[from] commands::serve::Error),
     #[error(transparent)]
-    Gen(#[from] gen::Error),
+    Gen(#[from] commands::gen::Error),
     #[error(transparent)]
-    Deploy(#[from] deploy::Error),
+    Deploy(#[from] commands::deploy::Error),
 }
 
 async fn run(cmd: Cmd, matches: &mut clap::ArgMatches) -> Result<(), CmdError> {

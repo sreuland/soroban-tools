@@ -20,7 +20,7 @@ use tokio::sync::Mutex;
 use warp::{http::Response, Filter};
 
 use crate::jsonrpc;
-use crate::network::SANDBOX_NETWORK_PASSPHRASE;
+use crate::network::Network;
 use crate::snapshot;
 use crate::strval::StrValError;
 use crate::utils;
@@ -465,11 +465,11 @@ async fn get_transaction_status(
     }
 }
 
-fn simulate_transaction(ledger_file: &PathBuf, b: Box<[String]>) -> Result<Value, Error> {
+fn simulate_transaction(n: Network, b: Box<[String]>) -> Result<Value, Error> {
     if let Some(txn_xdr) = b.into_vec().first() {
-        parse_transaction(txn_xdr, SANDBOX_NETWORK_PASSPHRASE)
+        parse_transaction(txn_xdr, n.passphrase())
             // Execute and do NOT commit
-            .and_then(|(_, args)| execute_transaction(&args, ledger_file, false))
+            .and_then(|(_, args)| execute_transaction(&args, n, false))
     } else {
         Err(Error::Xdr(XdrError::Invalid))
     }
@@ -483,7 +483,7 @@ async fn send_transaction(
     if let Some(txn_xdr) = b.into_vec().first() {
         // TODO: Format error object output if txn is invalid
         let mut m = transaction_status_map.lock().await;
-        parse_transaction(txn_xdr, SANDBOX_NETWORK_PASSPHRASE).map(|(hash, args)| {
+        parse_transaction(txn_xdr, n.passphrase()).map(|(hash, args)| {
             let id = hex::encode(hash);
             // Execute and commit
             let result = execute_transaction(&args, ledger_file, true);
