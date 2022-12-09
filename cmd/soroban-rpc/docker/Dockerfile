@@ -1,4 +1,4 @@
-FROM golang:1.19.1 as build
+FROM golang:1.19.4 as build
 
 ADD . /src/soroban-rpc
 WORKDIR /src/soroban-rpc
